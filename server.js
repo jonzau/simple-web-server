@@ -1,27 +1,18 @@
-const http = require('http')
-const fs = require('fs')
+const express = require('express');
+const path = require('path');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
-const PATH = './web';
+const server = express();
+server.use(express.static(__dirname + '/web'));
 
-function show404Page(res) {
-  const file = '/404.html';
-  const path404 = fs.existsSync(PATH + file) ? PATH + file : './' + file;
-  res.writeHead(404, { 'content-type': 'text/html' });
-  fs.createReadStream(path404).pipe(res);
-}
-
-const server = http.createServer((req, res) => {
-  const file = req.url === '/' ? '/index.html' : req.url;
-  if (fs.existsSync(PATH + file)) {
-    const header = req.headers.accept;
-    const contentType = header.substr(0, header.indexOf(','));
-    res.setHeader('content-type', contentType);
-    fs.createReadStream(PATH + file).pipe(res);
-  } else {
-    show404Page(res);
-  }
+server.get('/*', function(req,res) {
+  console.log(path.join(__dirname + '/web/index.html'));
+  res.sendFile(path.join(__dirname + '/web/index.html'), (err) => {
+    res.sendFile(__dirname + '/web/404.html', (err) => {
+      res.sendFile(__dirname + '/404.html');
+    });
+  });
 });
 
 server.listen(PORT, () => {
